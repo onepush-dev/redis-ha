@@ -1,6 +1,6 @@
 # Redis HA — 3-node Redis 8.10 with Sentinel failover and an HAProxy router on Railway. Deploy on Railway with one click.
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/TEMPLATE_CODE)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/lfEMyG)
 
 A production-style **Redis 8.10** high-availability cluster on Railway: three Redis nodes, each with a colocated **Sentinel**, and an **HAProxy** router that always sends writes to the current primary. Automatic failover, AOF + RDB persistence on every node, a read-only replica endpoint, and the Redis 8 modules (JSON, Search, TimeSeries, Bloom) loaded out of the box.
 
