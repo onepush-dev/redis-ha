@@ -63,6 +63,20 @@ if [ -z "$MASTER" ]; then
   log "no Sentinel answered; using bootstrap primary $BOOTSTRAP"
 else
   log "Sentinels report current primary: $MASTER"
+  # This node was the primary and just restarted. Do not come back as a second primary: give the
+  # Sentinels time to promote a replica, then rejoin as its replica. If nobody gets promoted
+  # (e.g. no healthy replica), resume as primary.
+  if [ "$MASTER" = "$SELF" ]; then
+    : "${PRIMARY_REJOIN_WAIT:=$(( SENTINEL_DOWN_AFTER_MS / 1000 + 20 ))}"
+    log "I was the primary; waiting up to ${PRIMARY_REJOIN_WAIT}s for Sentinel failover before rejoining"
+    deadline=$(( $(date +%s) + PRIMARY_REJOIN_WAIT ))
+    while [ "$(date +%s)" -lt "$deadline" ]; do
+      sleep 2
+      m="$(discover || true)"
+      if [ -n "$m" ] && [ "$m" != "$SELF" ]; then MASTER="$m"; log "Sentinels promoted $MASTER; rejoining as replica"; break; fi
+    done
+    [ "$MASTER" = "$SELF" ] && log "no failover happened; resuming as primary"
+  fi
 fi
 
 CONF=/etc/redis-ha/redis.conf
