@@ -19,6 +19,7 @@ set -euo pipefail
 : "${REDIS_APPENDONLY:=yes}"
 : "${REDIS_APPENDFSYNC:=everysec}"
 : "${REDIS_EXTRA_ARGS:=}"
+: "${REDIS_LOAD_MODULES:=yes}"
 : "${DISCOVERY_SECONDS:=20}"
 DATA=/data
 SELF="$RAILWAY_PRIVATE_DOMAIN"
@@ -86,6 +87,13 @@ maxmemory ${REDIS_MAXMEMORY}
 maxmemory-policy ${REDIS_MAXMEMORY_POLICY}
 tcp-keepalive 60
 CONF
+# Redis 8 ships JSON, Search, TimeSeries and probabilistic modules in the image; load them like the
+# official entrypoint does.
+if [ "$REDIS_LOAD_MODULES" = "yes" ]; then
+  for m in /usr/local/lib/redis/modules/*.so; do
+    [ -s "$m" ] && [ -x "$m" ] && echo "loadmodule $m" >> "$CONF"
+  done
+fi
 if [ "$MASTER" = "$SELF" ]; then
   ROLE=primary
 else
